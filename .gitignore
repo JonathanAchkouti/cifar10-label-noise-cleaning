@@ -1,0 +1,15 @@
+data/
+weights/
+*.pth
+*.pt
+
+artifacts/*_features.npz
+artifacts/preds_*.npz
+
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+smoke.yaml
+run_*.yaml
+.venv/
+.env

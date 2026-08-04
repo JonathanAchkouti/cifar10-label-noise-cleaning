@@ -1,0 +1,41 @@
+model:
+  # 'lenet' reproduces the original baseline; 'vit' is the fine-tuned backbone.
+  name: 'vit'
+  # Any timm model string works. augreg_in21k = ImageNet-21k pretrained,
+  # trained with the AugReg recipe (Steiner et al.), which transfers better
+  # than the original Google release.
+  timm_name: 'vit_base_patch16_224.augreg_in21k'
+  pretrained: true
+  drop_path_rate: 0.1        # stochastic depth; light regularisation for short finetunes
+
+data:
+  root: 'data/cifar10'
+  val_split: 0.05            # smaller than default: pretrained models need less val data
+  image_size: 224            # ViT-B/16 patch grid expects 224; LeNet ignores this
+  gpu_resize: true           # upsample on GPU, not in the dataloader (see engine.py)
+  # Augmentation is applied at 32x32 BEFORE upsampling, so crops stay meaningful.
+  random_crop_padding: 4
+  hflip: true
+  # Label cleaning: 'none' | 'drop' | 'relabel'
+  # Applied to the TRAIN split only. Never to val or test.
+  label_cleaning: 'none'
+  label_issues_file: 'artifacts/label_issues.json'
+
+hyperparameters:
+  epochs: 8
+  batch_size: 64
+  grad_accum_steps: 2        # effective batch = 128 without extra memory
+  num_workers: 2             # Colab free tier has 2 vCPUs
+  lr: 1.0e-4                 # head / top-block LR; AdamW, not SGD
+  weight_decay: 0.05
+  layer_decay: 0.65          # layer-wise LR decay; 1.0 disables it
+  warmup_epochs: 1
+  label_smoothing: 0.1
+  amp: true
+  ema_decay: 0.999           # 0 disables weight averaging
+  tta_hflip: true            # horizontal-flip test-time augmentation
+  seed: 42
+
+paths:
+  model_path: 'weights/checkpoint.pth'
+  artifacts_dir: 'artifacts'
